@@ -1,4 +1,11 @@
-import { CopierSolution, ActualUsage, CalculationResult, ComparisonResult } from '../types/calculator';
+import {
+  CopierSolution,
+  ActualUsage,
+  CalculationResult,
+  ComparisonResult,
+  CopierCalculationResult,
+  MultiCopierComparisonResult
+} from '../types/calculator';
 
 export function calculateCosts(
   solution: CopierSolution,
@@ -22,6 +29,18 @@ export function calculateCosts(
     extraBWCost,
     extraColorCost,
     rentCost,
+  };
+}
+
+export function calculateCopierCosts(
+  copier: CopierSolution,
+  usage: ActualUsage
+): CopierCalculationResult {
+  const result = calculateCosts(copier, usage);
+  return {
+    ...result,
+    copierId: copier.id,
+    copierName: copier.name,
   };
 }
 
@@ -58,4 +77,50 @@ export function formatCurrency(value: number): string {
 
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat('fr-FR').format(value);
+}
+
+export function compareMultipleCopiers(
+  currentCopiers: CopierSolution[],
+  proposedCopiers: CopierSolution[],
+  usage: ActualUsage
+): MultiCopierComparisonResult {
+  const currentResults = currentCopiers.map(copier => calculateCopierCosts(copier, usage));
+  const proposedResults = proposedCopiers.map(copier => calculateCopierCosts(copier, usage));
+
+  const currentTotalMonthly = currentResults.reduce((sum, result) => sum + result.monthlyTotal, 0);
+  const proposedTotalMonthly = proposedResults.reduce((sum, result) => sum + result.monthlyTotal, 0);
+
+  const currentTotal: CalculationResult = {
+    monthlyTotal: currentTotalMonthly,
+    annualTotal: currentTotalMonthly * 12,
+    basePackageCost: currentResults.reduce((sum, r) => sum + r.basePackageCost, 0),
+    extraBWCost: currentResults.reduce((sum, r) => sum + r.extraBWCost, 0),
+    extraColorCost: currentResults.reduce((sum, r) => sum + r.extraColorCost, 0),
+    rentCost: currentResults.reduce((sum, r) => sum + r.rentCost, 0),
+  };
+
+  const proposedTotal: CalculationResult = {
+    monthlyTotal: proposedTotalMonthly,
+    annualTotal: proposedTotalMonthly * 12,
+    basePackageCost: proposedResults.reduce((sum, r) => sum + r.basePackageCost, 0),
+    extraBWCost: proposedResults.reduce((sum, r) => sum + r.extraBWCost, 0),
+    extraColorCost: proposedResults.reduce((sum, r) => sum + r.extraColorCost, 0),
+    rentCost: proposedResults.reduce((sum, r) => sum + r.rentCost, 0),
+  };
+
+  const monthlySavings = currentTotal.monthlyTotal - proposedTotal.monthlyTotal;
+  const annualSavings = currentTotal.annualTotal - proposedTotal.annualTotal;
+  const savingsPercentage = currentTotal.monthlyTotal > 0
+    ? (monthlySavings / currentTotal.monthlyTotal) * 100
+    : 0;
+
+  return {
+    currentCopiers: currentResults,
+    proposedCopiers: proposedResults,
+    currentTotal,
+    proposedTotal,
+    monthlySavings,
+    annualSavings,
+    savingsPercentage,
+  };
 }

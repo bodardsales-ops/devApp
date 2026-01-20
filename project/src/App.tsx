@@ -1,41 +1,54 @@
 import { useState, useEffect } from 'react';
-import { CopierSolution, ActualUsage, ComparisonResult } from './types/calculator';
-import { compareResults } from './utils/calculator';
-import SolutionInput from './components/SolutionInput';
+import { CopierSolution, ActualUsage, MultiCopierComparisonResult } from './types/calculator';
+import { compareMultipleCopiers } from './utils/calculator';
+import CopierList from './components/CopierList';
 import UsageInput from './components/UsageInput';
-import ResultsDisplay from './components/ResultsDisplay';
+import MultiCopierResultsDisplay from './components/MultiCopierResultsDisplay';
+import ExportButton from './components/ExportButton';
 import { Calculator } from 'lucide-react';
 
 function App() {
-  const [currentSolution, setCurrentSolution] = useState<CopierSolution>({
-    rent: 100,
-    packageBW: 500,
-    packageColor: 200,
-    packageFixedCost: 50,
-    costPerExtraBW: 0.01,
-    costPerExtraColor: 0.05,
-  });
+  const [currentCopiers, setCurrentCopiers] = useState<CopierSolution[]>([
+    {
+      id: 'current-1',
+      name: 'Copieur Actuel 1',
+      rent: 100,
+      packageBW: 500,
+      packageColor: 200,
+      packageFixedCost: 50,
+      costPerExtraBW: 0.01,
+      costPerExtraColor: 0.05,
+    },
+  ]);
 
-  const [proposedSolution, setProposedSolution] = useState<CopierSolution>({
-    rent: 80,
-    packageBW: 600,
-    packageColor: 300,
-    packageFixedCost: 40,
-    costPerExtraBW: 0.008,
-    costPerExtraColor: 0.045,
-  });
+  const [proposedCopiers, setProposedCopiers] = useState<CopierSolution[]>([
+    {
+      id: 'proposed-1',
+      name: 'Copieur Proposé 1',
+      rent: 80,
+      packageBW: 600,
+      packageColor: 300,
+      packageFixedCost: 40,
+      costPerExtraBW: 0.008,
+      costPerExtraColor: 0.045,
+    },
+  ]);
 
   const [usage, setUsage] = useState<ActualUsage>({
     bwCopies: 1000,
     colorCopies: 500,
   });
 
-  const [results, setResults] = useState<ComparisonResult | null>(null);
+  const [results, setResults] = useState<MultiCopierComparisonResult | null>(null);
 
   useEffect(() => {
-    const comparisonResult = compareResults(currentSolution, proposedSolution, usage);
-    setResults(comparisonResult);
-  }, [currentSolution, proposedSolution, usage]);
+    if (currentCopiers.length > 0 && proposedCopiers.length > 0) {
+      const comparisonResult = compareMultipleCopiers(currentCopiers, proposedCopiers, usage);
+      setResults(comparisonResult);
+    } else {
+      setResults(null);
+    }
+  }, [currentCopiers, proposedCopiers, usage]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -53,16 +66,16 @@ function App() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <SolutionInput
-            title="Solution Actuelle"
-            solution={currentSolution}
-            onChange={setCurrentSolution}
+          <CopierList
+            title="Solutions Actuelles"
+            copiers={currentCopiers}
+            onChange={setCurrentCopiers}
             variant="current"
           />
-          <SolutionInput
-            title="Solution Proposée"
-            solution={proposedSolution}
-            onChange={setProposedSolution}
+          <CopierList
+            title="Solutions Proposées"
+            copiers={proposedCopiers}
+            onChange={setProposedCopiers}
             variant="proposed"
           />
         </div>
@@ -71,7 +84,11 @@ function App() {
           <UsageInput usage={usage} onChange={setUsage} />
         </div>
 
-        <ResultsDisplay results={results} />
+        <div className="mb-8 flex justify-center">
+          <ExportButton results={results} />
+        </div>
+
+        <MultiCopierResultsDisplay results={results} />
 
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>

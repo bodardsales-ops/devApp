@@ -1,4 +1,6 @@
 export interface CopierSolution {
+  id: string;
+  name: string;
   rent: number;
   packageBW: number;
   packageColor: number;
@@ -21,9 +23,24 @@ export interface CalculationResult {
   rentCost: number;
 }
 
+export interface CopierCalculationResult extends CalculationResult {
+  copierId: string;
+  copierName: string;
+}
+
 export interface ComparisonResult {
   current: CalculationResult;
   proposed: CalculationResult;
+  monthlySavings: number;
+  annualSavings: number;
+  savingsPercentage: number;
+}
+
+export interface MultiCopierComparisonResult {
+  currentCopiers: CopierCalculationResult[];
+  proposedCopiers: CopierCalculationResult[];
+  currentTotal: CalculationResult;
+  proposedTotal: CalculationResult;
   monthlySavings: number;
   annualSavings: number;
   savingsPercentage: number;

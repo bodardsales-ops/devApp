@@ -1,13 +1,14 @@
 import { CopierSolution } from '../types/calculator';
 
 interface SolutionInputProps {
-  title: string;
+  title?: string;
   solution: CopierSolution;
   onChange: (solution: CopierSolution) => void;
   variant: 'current' | 'proposed';
+  hideTitle?: boolean;
 }
 
-export default function SolutionInput({ title, solution, onChange, variant }: SolutionInputProps) {
+export default function SolutionInput({ title, solution, onChange, variant, hideTitle = false }: SolutionInputProps) {
   const bgColor = variant === 'current' ? 'bg-red-50' : 'bg-green-50';
   const borderColor = variant === 'current' ? 'border-red-200' : 'border-green-200';
   const labelColor = variant === 'current' ? 'text-red-900' : 'text-green-900';
@@ -17,9 +18,11 @@ export default function SolutionInput({ title, solution, onChange, variant }: So
     onChange({ ...solution, [field]: numValue });
   };
 
-  return (
-    <div className={`${bgColor} ${borderColor} border-2 rounded-xl p-6 space-y-4`}>
-      <h2 className={`text-xl font-bold ${labelColor} mb-4`}>{title}</h2>
+  const content = (
+    <div className="space-y-4">
+      {!hideTitle && title && (
+        <h2 className={`text-xl font-bold ${labelColor} mb-4`}>{title}</h2>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -120,6 +123,16 @@ export default function SolutionInput({ title, solution, onChange, variant }: So
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (hideTitle) {
+    return content;
+  }
+
+  return (
+    <div className={`${bgColor} ${borderColor} border-2 rounded-xl p-6`}>
+      {content}
     </div>
   );
 }
